@@ -1,0 +1,44 @@
+#include "imu.h"
+
+bool IMU::init(int dt) {
+    this->dt = dt;
+
+    Wire.begin(SDA_PIN, SCL_PIN);
+    Wire.setClock(I2C_FREQ);
+
+    int err = imu.init(calib, IMU_ADDRESS);
+    if (err != 0) {
+        Serial.print("Error initializing IMU: ");
+        Serial.println(err);
+        return false;
+    }
+
+    // init gyro angle from accelerometer
+    imu.update();
+    imu.getAccel(&accelData);
+    gyroPitch = atan2(-accelData.accelY, accelData.accelZ) * 180.0 / PI;
+    pitch = gyroPitch;
+
+    return true;
+}
+
+float IMU::readPitch() {
+    imu.update();
+    imu.getAccel(&accelData);
+    imu.getGyro(&gyroData);
+
+    // Accelerometer pitch
+    float rawAccelPitch = atan2(-accelData.accelY, accelData.accelZ) * 180.0 / PI;
+    accelPitch = BETA * accelPitch + (1.0 - BETA) * rawAccelPitch; // LPF
+
+    // Gyroscope pitch
+    gyroPitch = gyroPitch - gyroData.gyroX * (dt / 1000.0); // gyro in deg/sec
+
+    // Complementary filter
+    pitch = ALPHA * gyroPitch + (1.0 - ALPHA) * accelPitch;
+
+    // Correct for gyro drift
+    gyroPitch = pitch;
+
+    return pitch;
+}
