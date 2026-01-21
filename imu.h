@@ -16,7 +16,7 @@ class IMU {
     static const uint8_t IMU_ADDRESS = 0x68;
 
     static constexpr float ALPHA = 0.98;  // Complementary filter coefficient
-    static constexpr float BETA = 0.85;  // Low Pass Filter coefficient
+    static constexpr float BETA = 0.95;  // Low Pass Filter coefficient
 
     BMI160 imu;
     AccelData accelData;

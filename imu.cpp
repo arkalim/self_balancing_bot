@@ -13,10 +13,10 @@ bool IMU::init(int dt) {
         return false;
     }
 
-    // init gyro angle from accelerometer
+    // initialize pitch from accelerometer at the start
     imu.update();
     imu.getAccel(&accelData);
-    gyroPitch = atan2(-accelData.accelY, accelData.accelZ) * 180.0 / PI;
+    gyroPitch = readAccelPitch();
     pitch = gyroPitch;
 
     return true;
@@ -27,18 +27,23 @@ float IMU::readPitch() {
     imu.getAccel(&accelData);
     imu.getGyro(&gyroData);
 
-    // Accelerometer pitch
-    float rawAccelPitch = atan2(-accelData.accelY, accelData.accelZ) * 180.0 / PI;
-    accelPitch = BETA * accelPitch + (1.0 - BETA) * rawAccelPitch; // LPF
-
-    // Gyroscope pitch
-    gyroPitch = gyroPitch - gyroData.gyroX * (dt / 1000.0); // gyro in deg/sec
+    // Low Pass Filter to smooth accelerometer pitch
+    accelPitch = BETA * accelPitch + (1.0 - BETA) * readAccelPitch(); 
 
     // Complementary filter
-    pitch = ALPHA * gyroPitch + (1.0 - ALPHA) * accelPitch;
+    pitch = ALPHA * readGyroPitch() + (1.0 - ALPHA) * accelPitch;
 
     // Correct for gyro drift
     gyroPitch = pitch;
 
     return pitch;
+}
+
+float IMU::readAccelPitch() {
+    return atan2(-accelData.accelY, accelData.accelZ) * 180.0 / PI;
+}
+
+float IMU::readGyroPitch() {
+    gyroPitch = gyroPitch - gyroData.gyroX * (dt / 1000.0); // gyro in deg/sec
+    return gyroPitch;
 }
