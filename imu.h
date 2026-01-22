@@ -6,7 +6,8 @@
 
 class IMU {
   public:
-    bool init(int dt);
+    bool init(int sampleTime);
+    bool compute();
     float readPitch();
 
   private:
@@ -16,7 +17,6 @@ class IMU {
     static const uint8_t IMU_ADDRESS = 0x68;
 
     static constexpr float ALPHA = 0.98;  // Complementary filter coefficient
-    static constexpr float BETA = 0.95;  // Low Pass Filter coefficient
 
     BMI160 imu;
     AccelData accelData;
@@ -27,7 +27,9 @@ class IMU {
       .gyroBias  = {-0.08, -0.17, 0.25}
     };
 
-    float dt = 10;
+    int sampleTime = 10; // ms
+    unsigned long lastTime = 0;
+    unsigned long dt = 0;
 
     float pitch = 0;
     float gyroPitch = 0;
