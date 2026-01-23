@@ -6,11 +6,6 @@
 
 class IMU {
   public:
-    bool init(int sampleTime);
-    bool compute();
-    float readPitch();
-
-  private:
     static const int SDA_PIN = 0;
     static const int SCL_PIN = 1;
     static const int I2C_FREQ = 400000;
@@ -35,7 +30,9 @@ class IMU {
     float gyroPitch = 0;
     float accelPitch = 0;
 
-    // private methods
+    bool init(int sampleTime);
+    bool compute();
+    float readPitch();
     float readAccelPitch();
     float readGyroPitch();
 };

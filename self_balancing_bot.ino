@@ -4,18 +4,19 @@
 #include "imu.h"
 #include "motors.h"
 
-#define DT 10
-
-double Kp = 25.0;
-double Ki = 0.0;
-double Kd = 0.5;
+#define DT 10 //ms
 
 double measuredPitch = 0.0;
 double targetPitch = 0.0;
 double pwm = 0.0;
 
+double targetVelocity = 0.0;     // rpm
+double measuredVelocity = 0.0;
+
 IMU imu;
-PID pid(&measuredPitch, &pwm, &targetPitch, Kp, Ki, Kd, DIRECT);
+
+PID balancePID(&measuredPitch, &pwm, &targetPitch, 25.0, 0.0, 0.5, DIRECT);
+PID velocityPID(&measuredVelocity, &targetPitch, &targetVelocity, 1.0, 0.0, 0.0, REVERSE);
 
 void setup() { 
     // wait for IMU to start
@@ -25,25 +26,30 @@ void setup() {
 
     Motors::init();
 
-    pid.SetMode(AUTOMATIC);
-    pid.SetOutputLimits(-200, 200);
-    pid.SetSampleTime(DT);
+    balancePID.SetMode(AUTOMATIC);
+    balancePID.SetOutputLimits(-200, 200);
+    balancePID.SetSampleTime(DT);
+
+    velocityPID.SetMode(AUTOMATIC);
+    velocityPID.SetOutputLimits(-5, 5);
+    velocityPID.SetSampleTime(DT*5);
 }
 
 void loop() {
     if(imu.compute()){ measuredPitch = imu.readPitch(); }
 
-    // Safety cutoff: robot has fallen
+    // Safety cutoff: bot has fallen
     if (abs(measuredPitch) > 30.0) {
         pwm = 0;
-        pid.SetMode(MANUAL);   // stop PID integrating
-        Motors::moveForward(0);
+        balancePID.SetMode(MANUAL);   // stop PID integrating
+        Motors::move(pwm);
         return;
     }
 
     // Normal operation
-    pid.SetMode(AUTOMATIC);
-    if (pid.Compute()) {
-        Motors::moveForward((int)pwm);
-    }
+    balancePID.SetMode(AUTOMATIC);
+    if (balancePID.Compute()) { Motors::move((int)pwm); }
+
+    // Velocity PID
+    if (velocityPID.Compute()) { measuredVelocity = Motors::readVelocity(DT*5); }
 }
