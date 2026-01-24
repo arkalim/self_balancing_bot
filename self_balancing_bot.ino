@@ -3,6 +3,7 @@
 
 #include "imu.h"
 #include "motors.h"
+#include "led.h"
 
 #define DT 10 //ms
 
@@ -16,9 +17,11 @@ double measuredVelocity = 0.0;
 IMU imu;
 
 PID balancePID(&measuredPitch, &pwm, &targetPitch, 25.0, 0.0, 0.5, DIRECT);
-PID velocityPID(&measuredVelocity, &targetPitch, &targetVelocity, 1.0, 0.0, 0.0, REVERSE);
+PID velocityPID(&measuredVelocity, &targetPitch, &targetVelocity, 5, 0.0, 0.0, REVERSE);
 
 void setup() { 
+    LED::init();
+
     // wait for IMU to start
     if (!imu.init(DT)) {
         while (true) {;}
@@ -32,24 +35,31 @@ void setup() {
 
     velocityPID.SetMode(AUTOMATIC);
     velocityPID.SetOutputLimits(-5, 5);
-    velocityPID.SetSampleTime(DT*5);
+    velocityPID.SetSampleTime(DT*100);
+
+    LED::glow(LED::GREEN);
 }
 
 void loop() {
-    if(imu.compute()){ measuredPitch = imu.readPitch(); }
+    balancePID.SetMode(AUTOMATIC);
+    if (balancePID.Compute()) { 
+      measuredPitch = imu.readPitch();
 
-    // Safety cutoff: bot has fallen
-    if (abs(measuredPitch) > 30.0) {
-        pwm = 0;
-        balancePID.SetMode(MANUAL);   // stop PID integrating
-        Motors::move(pwm);
-        return;
+      // Safety cutoff: bot has fallen
+      if (abs(measuredPitch) > 30.0) {
+          balancePID.SetMode(MANUAL);   // stop PID integrating
+          pwm = 0;
+      }
+      Motors::move((int)pwm);
     }
 
-    // Normal operation
-    balancePID.SetMode(AUTOMATIC);
-    if (balancePID.Compute()) { Motors::move((int)pwm); }
-
     // Velocity PID
-    if (velocityPID.Compute()) { measuredVelocity = Motors::readVelocity(DT*5); }
+    if (velocityPID.Compute()) { 
+      measuredVelocity = Motors::readVelocity(DT*100);
+      if (measuredVelocity > 0) {
+        LED::glow(LED::BLUE);
+      } else {
+        LED::glow(LED::RED);
+      }
+    }
 }

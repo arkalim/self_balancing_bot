@@ -19,17 +19,10 @@ bool IMU::init(int sampleTime) {
     gyroPitch = readAccelPitch();
     pitch = gyroPitch;
 
-    lastTime = millis();
     return true;
 }
 
-bool IMU::compute() {
-    // compute pitch only if sampleTime has passed
-    unsigned long now = millis();
-    dt = (now - lastTime);
-    if (dt < sampleTime) {return false;}
-    lastTime = now;
-
+float IMU::readPitch() {
     imu.update();
     imu.getAccel(&accelData);
     imu.getGyro(&gyroData);
@@ -40,10 +33,6 @@ bool IMU::compute() {
     // Correct for gyro drift
     gyroPitch = pitch;
 
-    return true;
-}
-
-float IMU::readPitch() {
     return pitch;
 }
 
@@ -52,6 +41,6 @@ float IMU::readAccelPitch() {
 }
 
 float IMU::readGyroPitch() {
-    gyroPitch = gyroPitch - gyroData.gyroX * (dt / 1000.0); // gyro in deg/sec
+    gyroPitch = gyroPitch - gyroData.gyroX * (sampleTime / 1000.0); // gyro in deg/sec
     return gyroPitch;
 }

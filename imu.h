@@ -23,8 +23,6 @@ class IMU {
     };
 
     int sampleTime = 10; // ms
-    unsigned long lastTime = 0;
-    unsigned long dt = 0;
 
     float pitch = 0;
     float gyroPitch = 0;
