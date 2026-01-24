@@ -17,10 +17,7 @@ class IMU {
     AccelData accelData;
     GyroData gyroData;
 
-    calData calib = {
-      .accelBias = {0.05, -0.09, 0.06},
-      .gyroBias  = {-0.08, -0.17, 0.25}
-    };
+    calData calib = {0};
 
     int sampleTime = 10; // ms
 

@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # -------- SERIAL CONFIG --------
-PORT = "/dev/cu.usbmodem1101"
+PORT = "/dev/cu.usbmodem101"
 BAUD = 115200
 
 ser = serial.Serial(PORT, BAUD, timeout=1)

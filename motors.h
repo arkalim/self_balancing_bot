@@ -18,13 +18,13 @@ class Motors {
     static const int ENC_PULSE_PER_REV = 7 * 30;  // 7 ppr for motor × 30 (gear ratio)
 
     static const int LEFT_PWM_PIN = 2;
-    static const int LEFT_DIR1_PIN = 18;
-    static const int LEFT_DIR2_PIN = 19;
+    static const int LEFT_DIR1_PIN = 21;
+    static const int LEFT_DIR2_PIN = 20;
     static const int LEFT_ENC_PIN = 5;
 
     static const int RIGHT_PWM_PIN = 6;
     static const int RIGHT_DIR1_PIN = 7;
-    static const int RIGHT_DIR2_PIN = 8;
+    static const int RIGHT_DIR2_PIN = 4;
     static const int RIGHT_ENC_PIN = 3;
 
     static const int PWM_FREQ = 20000;

@@ -16,11 +16,13 @@ double measuredVelocity = 0.0;
 
 IMU imu;
 
-PID balancePID(&measuredPitch, &pwm, &targetPitch, 25.0, 0.0, 0.5, DIRECT);
-PID velocityPID(&measuredVelocity, &targetPitch, &targetVelocity, 5, 0.0, 0.0, REVERSE);
+PID balancePID(&measuredPitch, &pwm, &newPitch, 25.0, 0, 0.5, DIRECT);
+PID velocityPID(&measuredVelocity, &targetPitch, &targetVelocity, 0.9, 0.03, 0, REVERSE);
 
 void setup() { 
     LED::init();
+
+    Serial.begin(115200);
 
     // wait for IMU to start
     if (!imu.init(DT)) {
@@ -34,8 +36,8 @@ void setup() {
     balancePID.SetSampleTime(DT);
 
     velocityPID.SetMode(AUTOMATIC);
-    velocityPID.SetOutputLimits(-5, 5);
-    velocityPID.SetSampleTime(DT*100);
+    velocityPID.SetOutputLimits(-10, 10);
+    velocityPID.SetSampleTime(DT*10);
 
     LED::glow(LED::GREEN);
 }
@@ -55,11 +57,7 @@ void loop() {
 
     // Velocity PID
     if (velocityPID.Compute()) { 
-      measuredVelocity = Motors::readVelocity(DT*100);
-      if (measuredVelocity > 0) {
-        LED::glow(LED::BLUE);
-      } else {
-        LED::glow(LED::RED);
-      }
+      measuredVelocity = Motors::readVelocity(DT*10);
+      Serial.println(targetPitch);
     }
 }
