@@ -1,5 +1,11 @@
 #include "motors.h"
 
+unsigned int Motors::sampleTime = 0;
+unsigned long Motors::lastTime = 0;
+unsigned long Motors::dt = 0;
+double Motors::velocity = 0;
+
+bool Motors::power;
 int Motors::leftDir = 1;
 int Motors::rightDir = 1;
 volatile long Motors::leftEncoderCount = 0;
@@ -10,7 +16,12 @@ long Motors::lastRightEncoderCount = 0;
 void IRAM_ATTR leftEncoderISR() { Motors::leftEncoderCount += Motors::leftDir; }
 void IRAM_ATTR rightEncoderISR() { Motors::rightEncoderCount += Motors::rightDir; }
 
-void Motors::init() {
+void Motors::init(unsigned int sampleTime, bool power) {
+    Motors::sampleTime = sampleTime;
+    lastTime = millis();
+
+    Motors::power = power;
+
     pinMode(LEFT_DIR1_PIN, OUTPUT);
     pinMode(LEFT_DIR2_PIN, OUTPUT);
     pinMode(RIGHT_DIR1_PIN, OUTPUT);
@@ -44,6 +55,12 @@ void Motors::stop() {
 
 // ================= LOW-LEVEL MOTOR CONTROL =================
 void Motors::setLeftMotor(int pwm) {
+    if (!power) {
+        digitalWrite(LEFT_DIR1_PIN, LOW);
+        digitalWrite(LEFT_DIR2_PIN, LOW);
+        return;
+    }
+
     pwm = constrain(pwm, -255, 255);
 
     if (pwm >= 0) {
@@ -61,6 +78,12 @@ void Motors::setLeftMotor(int pwm) {
 }
 
 void Motors::setRightMotor(int pwm) {
+    if (!power) {
+        digitalWrite(RIGHT_DIR1_PIN, LOW);
+        digitalWrite(RIGHT_DIR2_PIN, LOW);
+        return;
+    }
+
     pwm = constrain(pwm, -255, 255);
 
     if (pwm >= 0) {
@@ -78,8 +101,11 @@ void Motors::setRightMotor(int pwm) {
 }
 
 // ================= ENCODER HELPERS =================
-
-float Motors::readVelocity(unsigned int dt) {
+bool Motors::ready() {
+    unsigned long now = millis();
+    dt = now - lastTime;
+    if (dt < sampleTime) { return false; }
+    lastTime = now;
 
     // read atomically
     long leftEnc, rightEnc;
@@ -94,8 +120,12 @@ float Motors::readVelocity(unsigned int dt) {
     lastLeftEncoderCount  = leftEncoderCount;
     lastRightEncoderCount = rightEncoderCount;
 
-    float encoderPulses = (leftEncPulses + rightEncPulses) * 0.5f;
-    float revs = encoderPulses / ENC_PULSE_PER_REV;
-    float velocity = revs / (dt / 1000.0f) * 60; // rpm
+    double encoderPulses = (leftEncPulses + rightEncPulses) * 0.5;
+    double revs = encoderPulses / ENC_PULSE_PER_REV;
+    velocity = revs / (dt / 1000.0); // rps
+    return true;
+}
+
+double Motors::readVelocity() {
     return velocity;
 }

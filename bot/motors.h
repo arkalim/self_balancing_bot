@@ -5,7 +5,7 @@
 
 class Motors {
   public:
-    static void init();
+    static void init(unsigned int sampleTime, bool power = true);
 
     // High-level movement commands
     static void move(int speed);
@@ -13,9 +13,15 @@ class Motors {
     static void stop();
 
     // Encoder
+    static bool ready();
     static void resetEncoders();
-    static float readVelocity(unsigned int dt);
+    static double readVelocity();
     static const int ENC_PULSE_PER_REV = 7 * 30;  // 7 ppr for motor × 30 (gear ratio)
+
+    static unsigned int sampleTime; // ms
+    static unsigned long lastTime;
+    static unsigned long dt;
+    static double velocity;
 
     static const int LEFT_PWM_PIN = 2;
     static const int LEFT_DIR1_PIN = 21;
@@ -29,6 +35,7 @@ class Motors {
 
     static const int PWM_FREQ = 20000;
     static const int PWM_RES = 8;
+    static bool power;
 
     static int leftDir;
     static volatile long leftEncoderCount;
