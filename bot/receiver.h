@@ -7,9 +7,9 @@
 class Receiver {
   public:
     struct Message {
-      float Kp;
-      float Ki;
-      float Kd;
+      double Kp;
+      double Ki;
+      double Kd;
     };
 
     static const uint8_t transmitterMAC[6];

@@ -50,9 +50,9 @@ bool Transmitter::readFromSerial() {
 
   if (firstSpace == -1 || secondSpace == -1) return false;
 
-  message.Kp = input.substring(0, firstSpace).toFloat();
-  message.Ki = input.substring(firstSpace + 1, secondSpace).toFloat();
-  message.Kd = input.substring(secondSpace + 1).toFloat();
+  message.Kp = input.substring(0, firstSpace).todouble();
+  message.Ki = input.substring(firstSpace + 1, secondSpace).todouble();
+  message.Kd = input.substring(secondSpace + 1).todouble();
 
   return true;
 }

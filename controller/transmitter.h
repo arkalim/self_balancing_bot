@@ -7,9 +7,9 @@
 class Transmitter {
   public:
     struct Message {
-      float Kp;
-      float Ki;
-      float Kd;
+      double Kp;
+      double Ki;
+      double Kd;
     };
 
     static void init();
