@@ -13,7 +13,7 @@ class Motors {
     static void stop();
 
     // Encoder
-    static bool ready();
+    static bool newVelocity();
     static void resetEncoders();
     static double readVelocity();
     static const int ENC_PULSE_PER_REV = 7 * 30;  // 7 ppr for motor × 30 (gear ratio)

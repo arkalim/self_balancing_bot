@@ -42,7 +42,7 @@ bool IMU::init(unsigned int sampleTime, bool calibrate) {
     return true;
 }
 
-bool IMU::ready() {
+bool IMU::newPitch() {
     unsigned long now = millis();
     dt = now - lastTime;
     if (dt < sampleTime) { return false; }

@@ -29,7 +29,7 @@ class IMU {
     static double accelPitch;
 
     static bool init(unsigned int sampleTime, bool calibrate = false);
-    static bool ready();
+    static bool newPitch();
     static void setCalib();
     static double readPitch();
     static double readAccelPitch();

@@ -101,7 +101,7 @@ void Motors::setRightMotor(int pwm) {
 }
 
 // ================= ENCODER HELPERS =================
-bool Motors::ready() {
+bool Motors::newVelocity() {
     unsigned long now = millis();
     dt = now - lastTime;
     if (dt < sampleTime) { return false; }
