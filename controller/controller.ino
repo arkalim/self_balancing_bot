@@ -1,11 +1,37 @@
-#include "transmitter.h"
+#include "radio.h"
+
+struct PIDMessage {
+    double Kp;
+    double Ki;
+    double Kd;
+};
+
+PIDMessage pid;
 
 void setup() {
     Serial.begin(115200);
-    Transmitter::init();
-    Serial.println("Enter Kp Ki Kd separated by spaces, e.g., 1.0 0.5 0.1\n");
+    Radio::init();
 }
 
 void loop() {
-    if (Transmitter::readFromSerial()) { Transmitter::send(); }
+    if (Radio::readFromSerial(pid)) {
+        Radio::send(Radio::peerMAC, pid);
+    }
+
+    if (Radio::hasNewMessage()) {
+        PIDMessage rx = Radio::getMessage<PIDMessage>();
+        Serial.printf("%.2f %.2f %.2f\n", rx.Kp, rx.Ki, rx.Kd);
+    }
 }
+
+// #include <WiFi.h>
+
+// void setup() {
+//   Serial.begin(115200);
+//   WiFi.mode(WIFI_STA);
+//   Serial.println(WiFi.macAddress());
+// }
+
+// void loop() {}
+
+// 20:6E:F1:6E:08:80
