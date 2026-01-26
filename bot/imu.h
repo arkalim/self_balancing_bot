@@ -11,15 +11,16 @@ class IMU {
     static const int I2C_FREQ = 400000;
     static const uint8_t IMU_ADDRESS = 0x68;
 
-    static constexpr double ALPHA = 0.98;  // Complementary filter coefficient
+    static constexpr double ALPHA = 0.98;
 
     static BMI160 imu;
     static AccelData accelData;
     static GyroData gyroData;
 
     static calData calib;
+    static constexpr double pitchBias = 4.8601; // avg measuredPitch from telemetry
 
-    static unsigned int sampleTime; // ms
+    static unsigned int sampleTime;  // ms
     static unsigned long lastTime;
     static unsigned long dt;
 

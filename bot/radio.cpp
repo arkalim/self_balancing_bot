@@ -1,7 +1,10 @@
 #include "radio.h"
 
-volatile bool Radio::newMessage = false;
-uint8_t Radio::lastMessage[250] = {}; // adjust size for your largest struct
+volatile bool Radio::newPID = false;
+volatile bool Radio::newControl = false;
+
+PIDMessage Radio::lastPID = {};
+ControlMessage Radio::lastControl = {};
 
 void Radio::init() {
     WiFi.mode(WIFI_STA);
@@ -11,13 +14,11 @@ void Radio::init() {
         return;
     }
 
-    // RX + TX callbacks
-    esp_now_register_recv_cb(Radio::onReceive);
-    esp_now_register_send_cb(Radio::onSend);
+    esp_now_register_recv_cb(onReceive);
+    esp_now_register_send_cb(onSend);
 
-    // Add default peer
     esp_now_peer_info_t peer{};
-    memcpy(peer.peer_addr, peerMAC, 6);
+    memcpy(peer.peer_addr, controllerMAC, 6);
     peer.channel = 0;
     peer.encrypt = false;
     esp_now_add_peer(&peer);
@@ -25,38 +26,59 @@ void Radio::init() {
     Serial.println("Radio Ready");
 }
 
-void Radio::onReceive(const esp_now_recv_info_t *info, const uint8_t *data, int len) {
-    memcpy(lastMessage, data, len);
-    newMessage = true;
-
-    Serial.printf("Received %d bytes\n", len);
+void Radio::sendTelemetry(const TelemetryMessage& message) {
+    esp_now_send(
+        controllerMAC,
+        reinterpret_cast<const uint8_t*>(&message),
+        sizeof(TelemetryMessage)
+    );
 }
 
-void Radio::onSend(const wifi_tx_info_t *info, esp_now_send_status_t status) {
-    Serial.print("Send status: ");
-    Serial.println(status == ESP_NOW_SEND_SUCCESS ? "OK" : "FAIL");
+bool Radio::hasPID() { return newPID; }
+
+bool Radio::hasControl() { return newControl; }
+
+PIDMessage Radio::getPID() {
+    noInterrupts();
+    newPID = false;
+    PIDMessage copy = lastPID;
+    interrupts();
+    return copy;
 }
 
-template <typename T>
-bool Radio::readFromSerial(T &msg) {
-    if (!Serial.available()) return false;
+ControlMessage Radio::getControl() {
+    noInterrupts();
+    newControl = false;
+    ControlMessage copy = lastControl;
+    interrupts();
+    return copy;
+}
 
-    String input = Serial.readStringUntil('\n');
-    input.trim();
+void Radio::onReceive(const esp_now_recv_info_t*, const uint8_t* data, int len) {
+    if (len < 1) return;
 
-    // Simple parser for space-separated values
-    int start = 0;
-    const char *p = input.c_str();
-    size_t fieldIndex = 0;
+    MessageType type = static_cast<MessageType>(data[0]);
 
-    for (size_t i = 0; i < sizeof(T) / sizeof(double); i++) {
-        char *endptr;
-        double val = strtod(p + start, &endptr);
-        if (endptr == p + start) return false; // parsing failed
+    switch (type) {
+        case MessageType::PID:
+            if (len == sizeof(PIDMessage)) {
+                memcpy(&lastPID, data, sizeof(PIDMessage));
+                newPID = true;
+            }
+            break;
 
-        ((double*)&msg)[i] = val;
-        start = endptr - p + 1;
+        case MessageType::CONTROL:
+            if (len == sizeof(ControlMessage)) {
+                memcpy(&lastControl, data, sizeof(ControlMessage));
+                newControl = true;
+            }
+            break;
+
+        default:
+            break;
     }
+}
 
-    return true;
+void Radio::onSend(const wifi_tx_info_t*, esp_now_send_status_t status) {
+    Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Send OK" : "Send FAIL");
 }

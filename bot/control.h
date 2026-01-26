@@ -2,6 +2,7 @@
 #define CONTROL_H
 
 #include <PID_v1.h>
+#include "messages.h"
 
 class Control {
   public:
@@ -11,6 +12,7 @@ class Control {
 
     static double measuredVelocity;
     static double targetVelocity;
+    static constexpr double moveVelocityLimit = 1.0;
 
     static PID pitchPID;
     static PID velocityPID;
@@ -19,6 +21,9 @@ class Control {
     static bool newPWM();
     static bool newTargetPitch();
     static bool fallen();
+    static void move(int velocity);
+    static void turn();
+    static TelemetryMessage readTelemetry();
 };
 
 #endif

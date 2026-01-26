@@ -1,5 +1,5 @@
-#include "control.h"
 #include <Arduino.h>
+#include "control.h"
 
 double Control::measuredPitch = 0;
 double Control::targetPitch = 0;
@@ -28,3 +28,18 @@ bool Control::newPWM() { return pitchPID.Compute(); }
 bool Control::newTargetPitch() { return velocityPID.Compute(); }
 
 bool Control::fallen() { return (abs(measuredPitch) > fallPitch); }
+
+void Control::move(int percent) {
+  percent = constrain(percent, -100, 100);
+  targetVelocity = moveVelocityLimit * percent / 100.0;
+}
+
+TelemetryMessage Control::readTelemetry() {
+  TelemetryMessage message;
+  message.targetPitch = targetPitch;
+  message.measuredPitch = measuredPitch;
+  message.targetVelocity = targetVelocity;
+  message.measuredVelocity = measuredVelocity;
+  message.pwm = static_cast<int>(pwm);
+  return message;
+}

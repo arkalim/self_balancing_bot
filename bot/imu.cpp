@@ -62,7 +62,7 @@ bool IMU::newPitch() {
 }
 
 double IMU::readPitch() {
-    return pitch;
+    return pitch + pitchBias;
 }
 
 double IMU::readAccelPitch() {
