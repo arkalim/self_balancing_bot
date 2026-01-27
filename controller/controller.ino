@@ -6,40 +6,34 @@ void setup() {
     delay(500);
 
     Radio::init();
-    Serial.println("Enter commands in format: move turn");
-    Serial.println("Example: 100 -50");
+    Serial.println("Enter PID as: kp ki kd");
+    Serial.println("Example: 25.0 1.2 0.8");
 }
 
 void loop() {
-    // Check if serial input is available
     if (Serial.available()) {
         String line = Serial.readStringUntil('\n');
         line.trim();
         if (line.length() == 0) return;
 
-        int move = 0, turn = 0;
+        double kp, ki, kd;
+        int parsed = sscanf(line.c_str(), "%lf %lf %lf", &kp, &ki, &kd);
 
-        // Parse two integers from the line
-        int spaceIndex = line.indexOf(' ');
-        if (spaceIndex > 0) {
-            move = line.substring(0, spaceIndex).toInt();
-            turn = line.substring(spaceIndex + 1).toInt();
+        if (parsed == 3) {
+            PIDMessage pid{};
+            pid.type = MessageType::PID;
+            pid.kp = kp;
+            pid.ki = ki;
+            pid.kd = kd;
 
-            // Build control message
-            ControlMessage cmd{};
-            cmd.type = MessageType::CONTROL;
-            cmd.move = move;
-            cmd.turn = turn;
+            Radio::sendPID(pid);
 
-            // Send over ESP-NOW
-            Radio::sendControl(cmd);
-
-            Serial.print("Sent -> Move: ");
-            Serial.print(move);
-            Serial.print(" | Turn: ");
-            Serial.println(turn);
+            Serial.print("Sent PID -> ");
+            Serial.print("Kp: "); Serial.print(kp);
+            Serial.print(" Ki: "); Serial.print(ki);
+            Serial.print(" Kd: "); Serial.println(kd);
         } else {
-            Serial.println("Invalid input. Use: move turn");
+            Serial.println("Invalid format. Use: kp ki kd");
         }
     }
 

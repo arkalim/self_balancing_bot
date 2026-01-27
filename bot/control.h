@@ -3,6 +3,8 @@
 
 #include <PID_v1.h>
 #include "messages.h"
+#include "imu.h"
+#include "motors.h"
 
 class Control {
   public:
@@ -18,11 +20,11 @@ class Control {
     static PID velocityPID;
 
     static void init(unsigned int pitchSampleTime, unsigned int velocitySampleTime);
+    static void control();
     static bool newPWM();
     static bool newTargetPitch();
-    static bool fallen();
-    static void move(int velocity);
-    static void turn();
+    static void move(int percent);
+    static void turn(int percent);
     static TelemetryMessage readTelemetry();
 };
 

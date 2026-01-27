@@ -3,7 +3,6 @@
 unsigned int Motors::sampleTime = 0;
 unsigned long Motors::lastTime = 0;
 unsigned long Motors::dt = 0;
-double Motors::velocity = 0;
 
 bool Motors::power;
 int Motors::leftDir = 1;
@@ -12,6 +11,8 @@ volatile long Motors::leftEncoderCount = 0;
 volatile long Motors::rightEncoderCount = 0;
 long Motors::lastLeftEncoderCount = 0;
 long Motors::lastRightEncoderCount = 0;
+double Motors::leftVelocity = 0;
+double Motors::rightVelocity = 0;
 
 void IRAM_ATTR leftEncoderISR() { Motors::leftEncoderCount += Motors::leftDir; }
 void IRAM_ATTR rightEncoderISR() { Motors::rightEncoderCount += Motors::rightDir; }
@@ -37,7 +38,6 @@ void Motors::init(unsigned int sampleTime, bool power) {
     attachInterrupt(digitalPinToInterrupt(RIGHT_ENC_PIN), rightEncoderISR, RISING);
 }
 
-// ================= HIGH-LEVEL MOVEMENTS =================
 void Motors::move(int pwm) {
     setLeftMotor(pwm);
     setRightMotor(pwm);
@@ -53,7 +53,6 @@ void Motors::stop() {
     setRightMotor(0);
 }
 
-// ================= LOW-LEVEL MOTOR CONTROL =================
 void Motors::setLeftMotor(int pwm) {
     if (!power) {
         digitalWrite(LEFT_DIR1_PIN, LOW);
@@ -100,32 +99,42 @@ void Motors::setRightMotor(int pwm) {
     ledcWrite(RIGHT_PWM_PIN, pwm);
 }
 
-// ================= ENCODER HELPERS =================
 bool Motors::newVelocity() {
     unsigned long now = millis();
     dt = now - lastTime;
-    if (dt < sampleTime) { return false; }
+    if (dt < sampleTime) return false;
     lastTime = now;
 
-    // read atomically
+    // atomic read
     long leftEnc, rightEnc;
     noInterrupts();
     leftEnc  = leftEncoderCount;
     rightEnc = rightEncoderCount;
     interrupts();
 
-    long leftEncPulses = leftEnc - lastLeftEncoderCount;
-    long rightEncPulses = rightEnc - lastRightEncoderCount;
+    long leftPulses  = leftEnc  - lastLeftEncoderCount;
+    long rightPulses = rightEnc - lastRightEncoderCount;
 
-    lastLeftEncoderCount  = leftEncoderCount;
-    lastRightEncoderCount = rightEncoderCount;
+    lastLeftEncoderCount  = leftEnc;
+    lastRightEncoderCount = rightEnc;
 
-    double encoderPulses = (leftEncPulses + rightEncPulses) * 0.5;
-    double revs = encoderPulses / ENC_PULSE_PER_REV;
-    velocity = revs / (dt / 1000.0); // rps
+    double dt_s = dt / 1000.0;
+
+    // pulses → revolutions → rps
+    leftVelocity  = (leftPulses  / (double)ENC_PULSE_PER_REV) / dt_s;
+    rightVelocity = (rightPulses / (double)ENC_PULSE_PER_REV) / dt_s;
+
     return true;
 }
 
+double Motors::readLeftVelocity() {
+    return leftVelocity;
+}
+
+double Motors::readRightVelocity() {
+    return rightVelocity;
+}
+
 double Motors::readVelocity() {
-    return velocity;
+    return 0.5 * (leftVelocity + rightVelocity);
 }
