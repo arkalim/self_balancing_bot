@@ -38,23 +38,8 @@ void Motors::init(unsigned int sampleTime, bool power) {
     attachInterrupt(digitalPinToInterrupt(RIGHT_ENC_PIN), rightEncoderISR, RISING);
 }
 
-void Motors::move(int pwm) {
-    setLeftMotor(pwm);
-    setRightMotor(pwm);
-}
-
-void Motors::turn(int pwm) {
-    setLeftMotor(pwm);
-    setRightMotor(-pwm);
-}
-
-void Motors::stop() {
-    setLeftMotor(0);
-    setRightMotor(0);
-}
-
 void Motors::setLeftMotor(int pwm) {
-    if (!power) {
+    if (!power || pwm == 0) {
         digitalWrite(LEFT_DIR1_PIN, LOW);
         digitalWrite(LEFT_DIR2_PIN, LOW);
         return;
@@ -62,7 +47,7 @@ void Motors::setLeftMotor(int pwm) {
 
     pwm = constrain(pwm, -255, 255);
 
-    if (pwm >= 0) {
+    if (pwm > 0) {
         leftDir = 1;
         digitalWrite(LEFT_DIR1_PIN, HIGH);
         digitalWrite(LEFT_DIR2_PIN, LOW);
@@ -77,7 +62,7 @@ void Motors::setLeftMotor(int pwm) {
 }
 
 void Motors::setRightMotor(int pwm) {
-    if (!power) {
+    if (!power || pwm == 0) {
         digitalWrite(RIGHT_DIR1_PIN, LOW);
         digitalWrite(RIGHT_DIR2_PIN, LOW);
         return;
@@ -85,7 +70,7 @@ void Motors::setRightMotor(int pwm) {
 
     pwm = constrain(pwm, -255, 255);
 
-    if (pwm >= 0) {
+    if (pwm > 0) {
         rightDir = 1;
         digitalWrite(RIGHT_DIR1_PIN, HIGH);
         digitalWrite(RIGHT_DIR2_PIN, LOW);
@@ -127,14 +112,16 @@ bool Motors::newVelocity() {
     return true;
 }
 
-double Motors::readLeftVelocity() {
-    return leftVelocity;
-}
-
-double Motors::readRightVelocity() {
-    return rightVelocity;
-}
-
 double Motors::readVelocity() {
     return 0.5 * (leftVelocity + rightVelocity);
 }
+
+double Motors::readVelocityDiff() {
+    return leftVelocity - rightVelocity;
+}
+
+void Motors::move(int pwm, int pwmDiff) {
+    setLeftMotor(pwm + pwmDiff);
+    setRightMotor(pwm - pwmDiff);
+}
+

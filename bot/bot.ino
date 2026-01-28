@@ -2,23 +2,22 @@
 #include "control.h"
 #include "radio.h"
 
-#define DT 10 //ms
-
 void setup() { 
     Serial.begin(115200);
 
     LED::init();
     Radio::init();
-    Control::init(DT, DT*10);
+    Control::init(true);
 
     LED::glow(LED::GREEN);
 }
 
 void loop() {
-  Control::control();
+  Control::loop();
 
-  if (Radio::hasPID()) {
-    PIDMessage pid = Radio::getPID();
-    Control::velocityPID.SetTunings(pid.kp, pid.ki, pid.kd);
-  }
+  if (Radio::hasControl()) { Control::move(Radio::getControl()); }
+
+  if (Radio::hasPID()) { Control::tunePID(Radio::getPID()); }
+
+  if (Control::newTelemetry()) { Radio::sendTelemetry(Control::readTelemetry()); }
 }

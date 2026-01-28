@@ -41,7 +41,7 @@ bool Radio::hasControl() { return newControl; }
 PIDMessage Radio::getPID() {
     noInterrupts();
     newPID = false;
-    PIDMessage copy = lastPID;
+PIDMessage copy = lastPID;
     interrupts();
     return copy;
 }

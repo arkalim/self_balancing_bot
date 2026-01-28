@@ -38,13 +38,10 @@ class Motors {
 
     static void setLeftMotor(int speed);
     static void setRightMotor(int speed);
-    static void move(int speed);
-    static void turn(int speed);
-    static void stop();
+    static void move(int pwm, int pwmDiff);
     static bool newVelocity();
     static double readVelocity();
-    static double readLeftVelocity();
-    static double readRightVelocity();
+    static double readVelocityDiff();
 };
 
 #endif
