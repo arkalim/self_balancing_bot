@@ -3,8 +3,6 @@
 #include "radio.h"
 
 void setup() { 
-    Serial.begin(115200);
-
     LED::init();
     Radio::init();
     Control::init(true);

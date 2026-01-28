@@ -15,7 +15,7 @@ public:
 
     // Receiving
     static bool hasTelemetry();
-    static TelemetryMessage getTelemetry();
+    static TelemetryMessage readTelemetry();
 
     static constexpr uint8_t botMAC[6] = {0x20, 0x6E, 0xF1, 0x6B, 0x97, 0x4C};
 

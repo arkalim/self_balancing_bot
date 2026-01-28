@@ -43,7 +43,7 @@ bool Radio::hasTelemetry() {
     return newTelemetry;
 }
 
-TelemetryMessage Radio::getTelemetry() {
+TelemetryMessage Radio::readTelemetry() {
     noInterrupts();
     newTelemetry = false;
     TelemetryMessage copy = lastTelemetry;
