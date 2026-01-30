@@ -5,6 +5,7 @@ TelemetryMessage Radio::lastTelemetry = {};
 
 void Radio::init() {
     WiFi.mode(WIFI_STA);
+    Serial.printf("MAC Address: %s\n", WiFi.macAddress().c_str());
 
     if (esp_now_init() != ESP_OK) {
         Serial.println("ESP-NOW init failed");

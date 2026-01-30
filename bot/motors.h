@@ -7,6 +7,7 @@ class Motors {
   public:
     static void init(unsigned int sampleTime, bool power = true);
     static const int ENC_PULSE_PER_REV = 7 * 30;  // 7 ppr for motor × 30 (gear ratio)
+    static const int DEADBAND = 10; // start PWM
 
     static unsigned int sampleTime; // ms
     static unsigned long lastTime;
@@ -36,6 +37,7 @@ class Motors {
     static long lastRightEncoderCount;
     static double rightVelocity;
 
+    static int applyDeadband(int pwm);
     static void setLeftMotor(int speed);
     static void setRightMotor(int speed);
     static void move(int pwm, int pwmDiff);

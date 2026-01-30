@@ -38,6 +38,20 @@ void Motors::init(unsigned int sampleTime, bool power) {
     attachInterrupt(digitalPinToInterrupt(RIGHT_ENC_PIN), rightEncoderISR, RISING);
 }
 
+int Motors::applyDeadband(int pwm) {
+    if (pwm == 0) return 0; // don't move if zero
+
+    pwm = constrain(pwm, -255, 255);
+
+    int sign = (pwm >= 0) ? 1 : -1;
+    int absPWM = abs(pwm);
+
+    // map full 0..255 → MOTOR_DEADBAND..255
+    absPWM = map(absPWM, 0, 255, DEADBAND, 255);
+
+    return sign * absPWM;
+}
+
 void Motors::setLeftMotor(int pwm) {
     if (!power || pwm == 0) {
         digitalWrite(LEFT_DIR1_PIN, LOW);
@@ -45,7 +59,7 @@ void Motors::setLeftMotor(int pwm) {
         return;
     }
 
-    pwm = constrain(pwm, -255, 255);
+    pwm = applyDeadband(pwm);
 
     if (pwm > 0) {
         leftDir = 1;
@@ -68,7 +82,7 @@ void Motors::setRightMotor(int pwm) {
         return;
     }
 
-    pwm = constrain(pwm, -255, 255);
+    pwm = applyDeadband(pwm);
 
     if (pwm > 0) {
         rightDir = 1;

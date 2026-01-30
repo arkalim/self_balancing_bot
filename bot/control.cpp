@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "control.h"
 
 double Control::measuredPitch = 0;
@@ -16,9 +15,9 @@ double Control::pwmDiff = 0;
 bool Control::enableTelemetry;
 unsigned long Control::lastTelemetryTime;
 
-PID Control::pitchPID(&Control::measuredPitch, &Control::pwm, &Control::targetPitch, 35.0, 0.1, 0.6, DIRECT);
-PID Control::velocityPID(&Control::measuredVelocity, &Control::targetPitch, &Control::targetVelocity, 4.5, 0.5, 0.185, REVERSE);
-PID Control::velocityDiffPID(&Control::measuredVelocityDiff, &Control::pwmDiff, &Control::targetVelocityDiff, 50, 5, 0, DIRECT);
+PID Control::pitchPID(&Control::measuredPitch, &Control::pwm, &Control::targetPitch, 25.0, 0.1, 0.5, DIRECT);
+PID Control::velocityPID(&Control::measuredVelocity, &Control::targetPitch, &Control::targetVelocity, 3.0, 1, 0.005, REVERSE);
+PID Control::velocityDiffPID(&Control::measuredVelocityDiff, &Control::pwmDiff, &Control::targetVelocityDiff, 45, 15, 0.25, DIRECT);
 
 void Control::init(bool enableTelemetry) {
   Control::enableTelemetry = enableTelemetry;
@@ -36,7 +35,7 @@ void Control::init(bool enableTelemetry) {
   velocityPID.SetSampleTime(velocitySampleTime);
 
   velocityDiffPID.SetMode(AUTOMATIC);
-  velocityDiffPID.SetOutputLimits(-30, 30);
+  velocityDiffPID.SetOutputLimits(-255, 255);
   velocityDiffPID.SetSampleTime(velocitySampleTime);
 }
 
@@ -63,10 +62,10 @@ void Control::loop() {
 }
 
 void Control::move(ControlMessage controlMessage) {
-  int moveInput = constrain(controlMessage.move, -100, 100);
-  int turnInput = constrain(controlMessage.turn, -100, 100);
-  targetVelocity = velocityLimit * moveInput / 100.0;
-  targetVelocityDiff = velocityDiffLimit * turnInput / 100.0;
+  int moveInput = constrain(controlMessage.move, -ControlMessage::MAX, ControlMessage::MAX);
+  int turnInput = constrain(controlMessage.turn, -ControlMessage::MAX, ControlMessage::MAX);
+  targetVelocity = velocitySensitivity * moveInput / ControlMessage::MAX;
+  targetVelocityDiff = velocityDiffSensitivity * turnInput / ControlMessage::MAX;
 }
 
 void Control::tunePID(PIDMessage pidMessage) {
@@ -89,8 +88,12 @@ bool Control::newTelemetry() {
   if (!enableTelemetry) { return false; }
   unsigned long now = millis();
   unsigned long dt = now - lastTelemetryTime;
-  lastTelemetryTime = now;
-  return dt > telemetrySampleTime;
+  if (dt > telemetrySampleTime) {
+    lastTelemetryTime = now;
+    return true;
+  }
+  return false;
+
 }
 
 TelemetryMessage Control::readTelemetry() {

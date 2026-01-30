@@ -5,15 +5,14 @@ bool SerialHandler::_hasControlMessage;
 bool SerialHandler::_hasPIDMessage;
 
 void SerialHandler::init() {
-    Serial.begin(115200);
-    Serial.println("Serial handler ready");
+    Serial.println("Serial Handler Ready");
 }
 
 void SerialHandler::refresh() {
-  if (!Serial.available()) return;
-
   _hasPIDMessage = false;
   _hasControlMessage = false;
+
+  if (!Serial.available()) return;
 
   static char buffer[64];
   size_t len = Serial.readBytesUntil('\n', buffer, sizeof(buffer) - 1);

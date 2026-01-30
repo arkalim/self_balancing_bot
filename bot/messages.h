@@ -34,6 +34,7 @@ struct PIDMessage {
 
 struct ControlMessage {
     MessageType type = MessageType::CONTROL;
+    static constexpr int MAX =  10;
     int move;
     int turn;
 };

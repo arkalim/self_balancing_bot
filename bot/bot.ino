@@ -1,13 +1,16 @@
+#include <Arduino.h>
 #include "led.h"
 #include "control.h"
 #include "radio.h"
 
 void setup() { 
-    LED::init();
-    Radio::init();
-    Control::init(true);
+  // Serial.begin(115200);
 
-    LED::glow(LED::GREEN);
+  LED::init();
+  Radio::init();
+  Control::init(true);
+
+  LED::glow(LED::GREEN);
 }
 
 void loop() {

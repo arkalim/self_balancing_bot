@@ -8,6 +8,7 @@ ControlMessage Radio::lastControl = {};
 
 void Radio::init() {
     WiFi.mode(WIFI_STA);
+    Serial.printf("MAC Address: %s\n", WiFi.macAddress().c_str());
 
     if (esp_now_init() != ESP_OK) {
         Serial.println("ESP-NOW init failed");
@@ -23,7 +24,7 @@ void Radio::init() {
     peer.encrypt = false;
     esp_now_add_peer(&peer);
 
-    Serial.println("Radio Ready");
+    Serial.println("Bot Radio Ready");
 }
 
 void Radio::sendTelemetry(const TelemetryMessage& message) {

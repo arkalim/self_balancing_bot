@@ -1,6 +1,7 @@
 #ifndef CONTROL_H
 #define CONTROL_H
 
+#include <Arduino.h>
 #include <PID_v1.h>
 #include "messages.h"
 #include "imu.h"
@@ -8,12 +9,12 @@
 
 class Control {
   public:
-    static const unsigned int pitchSampleTime = 10;       //ms
-    static const unsigned int velocitySampleTime = 100;   //ms
-    static const unsigned int telemetrySampleTime = 100;  //ms
+    static const unsigned int pitchSampleTime = 5;       //ms
+    static const unsigned int velocitySampleTime = 20;   //ms
+    static const unsigned int telemetrySampleTime = 100; //ms
 
     static bool enableTelemetry;
-    static const unsigned int fallPitch = 45;
+    static const unsigned int fallPitch = 30;
 
     static double measuredPitch;
     static double targetPitch;
@@ -27,8 +28,8 @@ class Control {
     static double pwm;
     static double pwmDiff;
 
-    static constexpr double velocityLimit = 1.0;
-    static constexpr double velocityDiffLimit = 0.5;
+    static constexpr double velocitySensitivity = 2;
+    static constexpr double velocityDiffSensitivity = 2;
 
     static PID pitchPID;
     static PID velocityPID;

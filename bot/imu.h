@@ -18,7 +18,7 @@ class IMU {
     static GyroData gyroData;
 
     static calData calib;
-    static constexpr double pitchBias = 4.8601; // avg measuredPitch from telemetry
+    static constexpr double pitchBias = 5.35; // avg measuredPitch from telemetry
 
     static unsigned int sampleTime;  // ms
     static unsigned long lastTime;
