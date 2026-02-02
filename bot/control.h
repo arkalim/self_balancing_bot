@@ -2,7 +2,7 @@
 #define CONTROL_H
 
 #include <Arduino.h>
-#include <PID_v1.h>
+#include "pid.h"
 #include "messages.h"
 #include "imu.h"
 #include "motors.h"
@@ -34,6 +34,7 @@ class Control {
     static PID pitchPID;
     static PID velocityPID;
     static PID velocityDiffPID;
+    static ControlMessage controlMessage;
 
     static void init(bool enableTelemetry = false);
     static void loop();

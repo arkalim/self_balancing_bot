@@ -14,9 +14,10 @@ double Control::pwmDiff = 0;
 
 bool Control::enableTelemetry;
 unsigned long Control::lastTelemetryTime;
+ControlMessage Control::controlMessage = { MessageType::CONTROL, 0, 0 };
 
-PID Control::pitchPID(&Control::measuredPitch, &Control::pwm, &Control::targetPitch, 25.0, 0.1, 0.5, DIRECT);
-PID Control::velocityPID(&Control::measuredVelocity, &Control::targetPitch, &Control::targetVelocity, 3.0, 1, 0.005, REVERSE);
+PID Control::pitchPID(&Control::measuredPitch, &Control::pwm, &Control::targetPitch, 35, 5, 1, DIRECT);
+PID Control::velocityPID(&Control::measuredVelocity, &Control::targetPitch, &Control::targetVelocity, 3, 0.1, 0.003, REVERSE);
 PID Control::velocityDiffPID(&Control::measuredVelocityDiff, &Control::pwmDiff, &Control::targetVelocityDiff, 45, 15, 0.25, DIRECT);
 
 void Control::init(bool enableTelemetry) {
@@ -26,24 +27,21 @@ void Control::init(bool enableTelemetry) {
   Motors::init(velocitySampleTime);
   lastTelemetryTime = millis();
 
-  pitchPID.SetMode(AUTOMATIC);
-  pitchPID.SetOutputLimits(-255, 255);
-  pitchPID.SetSampleTime(pitchSampleTime);
+  pitchPID.setOutputLimits(-255, 255);
+  pitchPID.setSampleTime(pitchSampleTime);
 
-  velocityPID.SetMode(AUTOMATIC);
-  velocityPID.SetOutputLimits(-30, 30);
-  velocityPID.SetSampleTime(velocitySampleTime);
+  velocityPID.setOutputLimits(-30, 30);
+  velocityPID.setSampleTime(velocitySampleTime);
 
-  velocityDiffPID.SetMode(AUTOMATIC);
-  velocityDiffPID.SetOutputLimits(-255, 255);
-  velocityDiffPID.SetSampleTime(velocitySampleTime);
+  velocityDiffPID.setOutputLimits(-255, 255);
+  velocityDiffPID.setSampleTime(velocitySampleTime);
 }
 
-bool Control::newPWM() { return pitchPID.Compute(); }
+bool Control::newPWM() { return pitchPID.newOutput(); }
 
-bool Control::newTargetPitch() { return velocityPID.Compute(); }
+bool Control::newTargetPitch() { return velocityPID.newOutput(); }
 
-bool Control::newPWMDiff() { return velocityDiffPID.Compute(); }
+bool Control::newPWMDiff() { return velocityDiffPID.newOutput(); }
 
 void Control::loop() {
   if (IMU::newPitch()) { measuredPitch = IMU::readPitch(); }
@@ -61,7 +59,21 @@ void Control::loop() {
   newPWMDiff();
 }
 
-void Control::move(ControlMessage controlMessage) {
+void Control::move(ControlMessage newControlMessage) {
+
+  // clear pitch and velocity integral on move direction change
+  if (controlMessage.move * newControlMessage.move <= 0) {
+    pitchPID.clearIntegral();
+    velocityPID.clearIntegral();
+  }
+
+  // clear velocity diff integral on turn direction change
+  if (controlMessage.turn * newControlMessage.turn <= 0) {
+    velocityDiffPID.clearIntegral();
+  }
+
+  controlMessage = newControlMessage;
+
   int moveInput = constrain(controlMessage.move, -ControlMessage::MAX, ControlMessage::MAX);
   int turnInput = constrain(controlMessage.turn, -ControlMessage::MAX, ControlMessage::MAX);
   targetVelocity = velocitySensitivity * moveInput / ControlMessage::MAX;
@@ -71,15 +83,15 @@ void Control::move(ControlMessage controlMessage) {
 void Control::tunePID(PIDMessage pidMessage) {
   switch(pidMessage.pidType) {
     case PIDType::PITCH:
-    pitchPID.SetTunings(pidMessage.kp, pidMessage.ki, pidMessage.kd);
+    pitchPID.setTunings(pidMessage.kp, pidMessage.ki, pidMessage.kd);
     break;
 
     case PIDType::VELOCITY:
-    velocityPID.SetTunings(pidMessage.kp, pidMessage.ki, pidMessage.kd);
+    velocityPID.setTunings(pidMessage.kp, pidMessage.ki, pidMessage.kd);
     break;
 
     case PIDType::VELOCITY_DIFF:
-    velocityDiffPID.SetTunings(pidMessage.kp, pidMessage.ki, pidMessage.kd);
+    velocityDiffPID.setTunings(pidMessage.kp, pidMessage.ki, pidMessage.kd);
     break;
   }
 }

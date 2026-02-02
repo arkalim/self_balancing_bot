@@ -23,8 +23,10 @@ bool Joystick::newControl() {
   int moveValue = analogRead(MOVE_PIN);
   int turnValue = analogRead(TURN_PIN);
 
-  int newMove = getControlValue(moveValue, MOVE_CENTER);
-  int newTurn = getControlValue(turnValue, TURN_CENTER);
+  // Serial.printf("%i %i\n", moveValue, turnValue);
+
+  int newMove = getControlValue(moveValue, MOVE_CENTER, MOVE_REVERSED);
+  int newTurn = getControlValue(turnValue, TURN_CENTER, TURN_REVERSED);
 
   // Only update if values change
   if (newMove != lastMove || newTurn != lastTurn) {
@@ -39,16 +41,22 @@ bool Joystick::newControl() {
   return false;
 }
 
-int Joystick::getControlValue(int rawValue, int centerValue) {
+int Joystick::getControlValue(int rawValue, int centerValue, bool reversed) {
   if (abs(rawValue - centerValue) < DEADZONE) {
     return 0;
   }
 
+  int controlValue = 0;
   if (rawValue > centerValue) {
-    return map(rawValue, centerValue + DEADZONE, 255, 0, ControlMessage::MAX);
+    controlValue = map(rawValue, centerValue + DEADZONE, 255, 0, ControlMessage::MAX);
   } else {
-    return map(rawValue, 0, centerValue - DEADZONE, -ControlMessage::MAX, 0);
+    controlValue = map(rawValue, 0, centerValue - DEADZONE, -ControlMessage::MAX, 0);
   }
+
+  if (reversed) {
+    return -controlValue;
+  }
+  return controlValue;
 }
 
 ControlMessage Joystick::readControl() {

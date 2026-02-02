@@ -11,7 +11,7 @@ public:
   static bool newControl();
 
   static ControlMessage readControl();
-  static int getControlValue(int rawValue, int centerValue);
+  static int getControlValue(int rawValue, int centerValue, bool reversed);
 
 private:
   static const unsigned int sampleTime = 100; // ms
@@ -19,12 +19,14 @@ private:
   static int lastMove;
   static int lastTurn;
 
-  static const int MOVE_PIN = 0;
-  static const int TURN_PIN = 2;
+  static const int MOVE_PIN = 1;
+  static const int TURN_PIN = 0;
 
   static const int DEADZONE = 3;
-  static const int MOVE_CENTER = 145;
-  static const int TURN_CENTER = 147;
+  static const int MOVE_CENTER = 137;
+  static const bool MOVE_REVERSED = true;
+  static const int TURN_CENTER = 140;
+  static const bool TURN_REVERSED = false;
 
   static ControlMessage controlMessage;
 

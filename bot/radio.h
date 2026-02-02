@@ -19,7 +19,7 @@ public:
     static PIDMessage getPID();
     static ControlMessage getControl();
 
-    static constexpr uint8_t controllerMAC[6] = { 0x20, 0x6E, 0xF1, 0x6B, 0x7A, 0xC8 };
+    static constexpr uint8_t controllerMAC[6] = { 0x20, 0x6E, 0xF1, 0x6E, 0x08, 0x80 };
 
 private:
     static void onReceive(const esp_now_recv_info_t*, const uint8_t*, int);

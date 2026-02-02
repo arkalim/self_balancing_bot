@@ -11,7 +11,7 @@ void setup() {
     SerialHandler::init();
     Joystick::init();
 
-    LED::glow(LED::BLUE);
+    LED::glow(LED::CYAN);
 }
 
 void loop() {
