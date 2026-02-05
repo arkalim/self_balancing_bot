@@ -66,7 +66,9 @@ double IMU::readPitch() {
 }
 
 double IMU::readAccelPitch() {
-    return atan2(-accelData.accelY, accelData.accelZ) * 180.0 / PI;
+    double currentAccelPitch = atan2(-accelData.accelY, accelData.accelZ) * 180.0 / PI;
+    accelPitch = BETA * currentAccelPitch + (1.0 - BETA) * accelPitch; // LPF
+    return accelPitch;
 }
 
 double IMU::readGyroPitch() {

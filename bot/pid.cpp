@@ -17,7 +17,7 @@ PID::PID(double* input,
     _sampleTime(10),
     _lastTime(0),
     _direction(direction),
-    _integralLimitRatio(0.5)
+    _integralLimitRatio(0.2)
 {
   setTunings(kp, ki, kd);
 }
@@ -62,6 +62,10 @@ void PID::setOutputLimits(double min, double max) {
 
 void PID::clearIntegral() {
   _integral = 0;
+}
+
+void PID::scaleIntegral(double amount) {
+  _integral *= amount;
 }
 
 bool PID::newOutput() {

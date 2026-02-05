@@ -11,7 +11,8 @@ class IMU {
     static const int I2C_FREQ = 400000;
     static const uint8_t IMU_ADDRESS = 0x68;
 
-    static constexpr double ALPHA = 0.98;
+    static constexpr double ALPHA = 0.98;  // Complimentary filter coefficient
+    static constexpr double BETA = 0.2;    // LPF coefficient
 
     static BMI160 imu;
     static AccelData accelData;
@@ -23,7 +24,6 @@ class IMU {
     static unsigned int sampleTime;  // ms
     static unsigned long lastTime;
     static unsigned long dt;
-
 
     static double pitch;
     static double gyroPitch;

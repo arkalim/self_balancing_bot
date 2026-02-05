@@ -10,11 +10,17 @@ void setup() {
   Radio::init();
   Control::init(true);
 
-  LED::glow(LED::GREEN);
+  LED::glow(LED::MAGENTA);
 }
 
 void loop() {
   Control::loop();
+
+  if (Control::fallen()) { 
+    LED::glow(LED::RED); 
+  } else {
+    LED::glow(LED::GREEN);
+  }
 
   if (Radio::hasControl()) { Control::move(Radio::getControl()); }
 

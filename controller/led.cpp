@@ -23,7 +23,7 @@ void LED::init() {
 }
 
 void LED::glow(uint32_t color) {
-    led.setPixelColor(0, color);
+    led.setPixelColor(0, color); 
     led.show();
 }
 

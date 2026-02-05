@@ -19,6 +19,7 @@ public:
       PIDDirection direction);
 
   void clearIntegral();
+  void scaleIntegral(double amount);
   void setOutputLimits(double min, double max);
   void setTunings(double kp, double ki, double kd);
   void setSampleTime(unsigned long sampleTime);

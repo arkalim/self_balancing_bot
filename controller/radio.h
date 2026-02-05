@@ -1,9 +1,6 @@
 #ifndef RADIO_H
 #define RADIO_H
 
-// PID PITCH 35 5 1
-// PID VELOCITY 3 0.01 0.003
-// PID VELOCITY_DIFF 45 15 0.25
 #include <WiFi.h>
 #include <esp_now.h>
 #include "messages.h"
