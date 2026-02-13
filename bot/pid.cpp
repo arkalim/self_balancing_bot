@@ -17,7 +17,8 @@ PID::PID(double* input,
     _sampleTime(10),
     _lastTime(0),
     _direction(direction),
-    _integralLimitRatio(0.2)
+    _integralLimitRatio(0.2),
+    _expo(0)
 {
   setTunings(kp, ki, kd);
 }
@@ -37,6 +38,8 @@ void PID::setTunings(double kp, double ki, double kd) {
     _kd = -_kd;
   }
 }
+
+void PID::setExpo(double expo) { _expo = expo; }
 
 void PID::setSampleTime(unsigned long sampleTime) {
   if (sampleTime == 0) return;
@@ -80,14 +83,18 @@ bool PID::newOutput() {
   double error = *_setpoint - input;
   double dInput = input - _lastInput;
 
-  // Integral term
+  // Expo
+  double scale = exp(_expo * error);
+  scale = constrain(scale, 1.0, 4.0);
+
+  // Integral
   _integral += _ki * error;
   double integralLimit = (_outMax - _outMin) * 0.5 * _integralLimitRatio;
   if (_integral > integralLimit) _integral = integralLimit;
   else if (_integral < -integralLimit) _integral = -integralLimit;
 
   // PID output
-  double output = _kp * error + _integral - _kd * dInput;
+  double output = scale * _kp * error + _integral - _kd * dInput;
 
   if (output > _outMax) output = _outMax;
   else if (output < _outMin) output = _outMin;

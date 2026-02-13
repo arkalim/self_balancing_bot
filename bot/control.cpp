@@ -23,9 +23,6 @@ PID Control::velocityDiffPID(&Control::measuredVelocityDiff, &Control::pwmDiff, 
 
 void Control::init(bool enableTelemetry) {
   Control::enableTelemetry = enableTelemetry;
-
-  IMU::init(pitchSampleTime);
-  Motors::init(velocitySampleTime);
   lastTelemetryTime = millis();
 
   pitchPID.setOutputLimits(-255, 255);
@@ -36,6 +33,9 @@ void Control::init(bool enableTelemetry) {
 
   velocityDiffPID.setOutputLimits(-100, 100);
   velocityDiffPID.setSampleTime(velocitySampleTime);
+
+  IMU::init(pitchSampleTime);
+  Motors::init(velocitySampleTime);
 }
 
 bool Control::fallen() { return abs(measuredPitch) > fallPitch; }
