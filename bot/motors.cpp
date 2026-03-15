@@ -5,8 +5,6 @@ unsigned long Motors::lastTime = 0;
 unsigned long Motors::dt = 0;
 
 bool Motors::power;
-int Motors::leftDir = 1;
-int Motors::rightDir = 1;
 volatile long Motors::leftEncoderCount = 0;
 volatile long Motors::rightEncoderCount = 0;
 long Motors::lastLeftEncoderCount = 0;
@@ -14,8 +12,12 @@ long Motors::lastRightEncoderCount = 0;
 double Motors::leftVelocity = 0;
 double Motors::rightVelocity = 0;
 
-void IRAM_ATTR leftEncoderISR() { Motors::leftEncoderCount += Motors::leftDir; }
-void IRAM_ATTR rightEncoderISR() { Motors::rightEncoderCount += Motors::rightDir; }
+void IRAM_ATTR leftEncoderISR() {
+    Motors::leftEncoderCount += (digitalRead(Motors::LEFT_ENC2_PIN) ? 1 : -1);
+}
+void IRAM_ATTR rightEncoderISR() {
+    Motors::rightEncoderCount += (digitalRead(Motors::RIGHT_ENC2_PIN) ? 1 : -1);
+}
 
 void Motors::init(unsigned int sampleTime, bool power) {
     Motors::sampleTime = sampleTime;
@@ -23,19 +25,18 @@ void Motors::init(unsigned int sampleTime, bool power) {
 
     Motors::power = power;
 
-    pinMode(LEFT_DIR1_PIN, OUTPUT);
-    pinMode(LEFT_DIR2_PIN, OUTPUT);
-    pinMode(RIGHT_DIR1_PIN, OUTPUT);
-    pinMode(RIGHT_DIR2_PIN, OUTPUT);
+    ledcAttach(LEFT_DIR1_PIN, PWM_FREQ, PWM_RES);
+    ledcAttach(LEFT_DIR2_PIN, PWM_FREQ, PWM_RES);
+    ledcAttach(RIGHT_DIR1_PIN, PWM_FREQ, PWM_RES);
+    ledcAttach(RIGHT_DIR2_PIN, PWM_FREQ, PWM_RES);
 
-    ledcAttach(LEFT_PWM_PIN, PWM_FREQ, PWM_RES);
-    ledcAttach(RIGHT_PWM_PIN, PWM_FREQ, PWM_RES);
+    pinMode(LEFT_ENC1_PIN, INPUT_PULLUP);
+    pinMode(LEFT_ENC2_PIN, INPUT_PULLUP);
+    pinMode(RIGHT_ENC1_PIN, INPUT_PULLUP);
+    pinMode(RIGHT_ENC2_PIN, INPUT_PULLUP);
 
-    pinMode(LEFT_ENC_PIN, INPUT_PULLUP);
-    pinMode(RIGHT_ENC_PIN, INPUT_PULLUP);
-
-    attachInterrupt(digitalPinToInterrupt(LEFT_ENC_PIN), leftEncoderISR, RISING);
-    attachInterrupt(digitalPinToInterrupt(RIGHT_ENC_PIN), rightEncoderISR, RISING);
+    attachInterrupt(digitalPinToInterrupt(LEFT_ENC1_PIN), leftEncoderISR, RISING);
+    attachInterrupt(digitalPinToInterrupt(RIGHT_ENC1_PIN), rightEncoderISR, RISING);
 }
 
 int Motors::applyDeadband(int pwm) {
@@ -54,48 +55,38 @@ int Motors::applyDeadband(int pwm) {
 
 void Motors::setLeftMotor(int pwm) {
     if (!power || pwm == 0) {
-        digitalWrite(LEFT_DIR1_PIN, LOW);
-        digitalWrite(LEFT_DIR2_PIN, LOW);
+        ledcWrite(LEFT_DIR1_PIN, 0);
+        ledcWrite(LEFT_DIR2_PIN, 0);
         return;
     }
 
     pwm = applyDeadband(pwm);
 
     if (pwm > 0) {
-        leftDir = 1;
-        digitalWrite(LEFT_DIR1_PIN, HIGH);
-        digitalWrite(LEFT_DIR2_PIN, LOW);
+        ledcWrite(LEFT_DIR1_PIN, pwm);
+        ledcWrite(LEFT_DIR2_PIN, 0);
     } else {
-        leftDir = -1;
-        digitalWrite(LEFT_DIR1_PIN, LOW);
-        digitalWrite(LEFT_DIR2_PIN, HIGH);
-        pwm = -pwm;
+        ledcWrite(LEFT_DIR1_PIN, 0);
+        ledcWrite(LEFT_DIR2_PIN, -pwm);
     }
-
-    ledcWrite(LEFT_PWM_PIN, pwm);
 }
 
 void Motors::setRightMotor(int pwm) {
     if (!power || pwm == 0) {
-        digitalWrite(RIGHT_DIR1_PIN, LOW);
-        digitalWrite(RIGHT_DIR2_PIN, LOW);
+        ledcWrite(RIGHT_DIR1_PIN, 0);
+        ledcWrite(RIGHT_DIR2_PIN, 0);
         return;
     }
 
     pwm = applyDeadband(pwm);
 
     if (pwm > 0) {
-        rightDir = 1;
-        digitalWrite(RIGHT_DIR1_PIN, HIGH);
-        digitalWrite(RIGHT_DIR2_PIN, LOW);
+        ledcWrite(RIGHT_DIR1_PIN, pwm);
+        ledcWrite(RIGHT_DIR2_PIN, 0);
     } else {
-        rightDir = -1;
-        digitalWrite(RIGHT_DIR1_PIN, LOW);
-        digitalWrite(RIGHT_DIR2_PIN, HIGH);
-        pwm = -pwm;
+        ledcWrite(RIGHT_DIR1_PIN, 0);
+        ledcWrite(RIGHT_DIR2_PIN, -pwm);
     }
-
-    ledcWrite(RIGHT_PWM_PIN, pwm);
 }
 
 bool Motors::newVelocity() {
